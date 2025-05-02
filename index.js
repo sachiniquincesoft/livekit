@@ -13,7 +13,7 @@ app.get('/', (req, res) => {
   res.send('LiveKit Token Server is running.');
 });
 
-app.post('/getToken', async (req, res) => {
+/*app.post('/getToken', async (req, res) => {
   const { room, identity } = req.body;
   const apiKey = process.env.LIVEKIT_API_KEY;
   const apiSecret = process.env.LIVEKIT_API_SECRET;
@@ -31,6 +31,29 @@ app.post('/getToken', async (req, res) => {
     at.addGrant({ roomJoin: true, room });
     const token = await at.toJwt();
 
+    res.json({ token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to generate token' });
+  }
+});*/
+
+app.post('/getToken', async (req, res) => {
+  const { apiKey, apiSecret, room, identity } = req.body;
+
+  if (!apiKey || !apiSecret || !room || !identity) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    const at = new AccessToken(apiKey, apiSecret, {
+      identity,
+      ttl: '200m',
+    });
+
+    at.addGrant({ roomJoin: true, room });
+
+    const token = await at.toJwt();
     res.json({ token });
   } catch (error) {
     console.error(error);
