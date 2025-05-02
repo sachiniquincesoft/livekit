@@ -1,17 +1,22 @@
 const express = require('express');
 const { AccessToken } = require('livekit-server-sdk');
 const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(cors());
-
-// Use built-in middleware to parse JSON
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.send('LiveKit Token Server is running.');
+});
+
 app.post('/getToken', async (req, res) => {
-  const { apiKey, apiSecret, room, identity } = req.body;
+  const { room, identity } = req.body;
+  const apiKey = process.env.LIVEKIT_API_KEY;
+  const apiSecret = process.env.LIVEKIT_API_SECRET;
 
   if (!apiKey || !apiSecret || !room || !identity) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -24,8 +29,8 @@ app.post('/getToken', async (req, res) => {
     });
 
     at.addGrant({ roomJoin: true, room });
-
     const token = await at.toJwt();
+
     res.json({ token });
   } catch (error) {
     console.error(error);
@@ -36,3 +41,4 @@ app.post('/getToken', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
